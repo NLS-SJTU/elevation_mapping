@@ -68,6 +68,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS}
+  ${kindr_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library

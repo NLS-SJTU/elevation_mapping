@@ -81,6 +81,7 @@ bool ElevationMap::add(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud, 
   }
   const double scanTimeSinceInitialization = (timestamp - initialTime_).toSec();
 
+  // ROS_INFO("add (%i) points to map", (int)pointCloud->size());
   for (unsigned int i = 0; i < pointCloud->size(); ++i) {
     auto& point = pointCloud->points[i];
     Index index;

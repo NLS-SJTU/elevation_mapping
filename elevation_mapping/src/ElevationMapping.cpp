@@ -60,7 +60,7 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
   ROS_INFO("Elevation mapping node started.");
 
   readParameters();
-  pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 1, &ElevationMapping::pointCloudCallback, this);
+  pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::pointCloudCallback, this);
   if (!robotPoseTopic_.empty()) {
     robotPoseSubscriber_.subscribe(nodeHandle_, robotPoseTopic_, 1);
     robotPoseCache_.connectInput(robotPoseSubscriber_);
@@ -281,6 +281,7 @@ void ElevationMapping::pointCloudCallback(
 
   // Update map location.
   updateMapLocation();
+  ROS_INFO("updatemaploca");
 
   // Update map from motion prediction.
   if (!updatePrediction(lastPointCloudUpdateTime_)) {
@@ -309,13 +310,16 @@ void ElevationMapping::pointCloudCallback(
   // Process point cloud.
   PointCloud<PointXYZRGB>::Ptr pointCloudProcessed(new PointCloud<PointXYZRGB>);
   Eigen::VectorXf measurementVariances;
+  ROS_INFO("process");
   if (!sensorProcessor_->process(pointCloud, robotPoseCovariance, pointCloudProcessed,
                                  measurementVariances)) {
     ROS_ERROR("Point cloud could not be processed.");
     resetMapUpdateTimer();
     return;
   }
+  //std::cout<<"a:"<<pointCloudProcessed->size()<<std::endl;
 
+  ROS_INFO("add");
   // Add point cloud to elevation map.
   if (!map_.add(pointCloudProcessed, measurementVariances, lastPointCloudUpdateTime_, Eigen::Affine3d(sensorProcessor_->transformationSensorToMap_))) {
     ROS_ERROR("Adding point cloud to elevation map failed.");
@@ -323,12 +327,14 @@ void ElevationMapping::pointCloudCallback(
     return;
   }
 
+  ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
+  /*
   if (isContinouslyFusing_ && map_.hasFusedMapSubscribers()) {
     map_.fuseAll();
     map_.publishFusedElevationMap();
-  }
+  }*/
 
   resetMapUpdateTimer();
 }

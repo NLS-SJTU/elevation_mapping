@@ -67,17 +67,20 @@ bool SensorProcessorBase::process(
   ros::Time timeStamp;
   timeStamp.fromNSec(1000 * pointCloudInput->header.stamp);
   if (!updateTransformations(timeStamp)) return false;
-
+  // ROS_INFO("111");
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudSensorFrame(new pcl::PointCloud<pcl::PointXYZRGB>);
   transformPointCloud(pointCloudInput, pointCloudSensorFrame, sensorFrameId_);
   filterPointCloud(pointCloudSensorFrame);
   filterPointCloudSensorType(pointCloudSensorFrame);
+  // ROS_INFO("222");
 
   if (!transformPointCloud(pointCloudSensorFrame, pointCloudMapFrame, mapFrameId_)) return false;
   std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pointClouds({pointCloudMapFrame, pointCloudSensorFrame});
   removePointsOutsideLimits(pointCloudMapFrame, pointClouds);
+  // ROS_INFO("333");
   if (!computeVariances(pointCloudSensorFrame, robotPoseCovariance, variances)) return false;
 
+  // ROS_INFO("444");
   return true;
 }
 

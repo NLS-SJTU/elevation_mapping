@@ -330,11 +330,10 @@ void ElevationMapping::pointCloudCallback(
   ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
-  /*
   if (isContinouslyFusing_ && map_.hasFusedMapSubscribers()) {
     map_.fuseAll();
     map_.publishFusedElevationMap();
-  }*/
+  }
 
   resetMapUpdateTimer();
 }

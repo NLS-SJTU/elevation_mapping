@@ -3,8 +3,7 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Axes1
+      Expanded: ~
       Splitter Ratio: 0.663888991
     Tree Height: 381
   - Class: rviz/Selection
@@ -56,6 +55,8 @@ Visualization Manager:
         All Enabled: true
         camera:
           Value: true
+        dmcam_ros:
+          Value: true
         quanergy:
           Value: true
         slam:
@@ -68,6 +69,8 @@ Visualization Manager:
       Tree:
         slam:
           camera:
+            dmcam_ros:
+              {}
             quanergy:
               {}
       Update Interval: 0
@@ -78,7 +81,7 @@ Visualization Manager:
       Color: 200; 200; 200
       Color Layer: uncertainty_range
       Color Transformer: GridMapLayer
-      Enabled: true
+      Enabled: false
       Height Layer: elevation
       Height Transformer: GridMapLayer
       History Length: 1
@@ -92,12 +95,12 @@ Visualization Manager:
       Topic: /elevation_mapping/elevation_map
       Unreliable: false
       Use Rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
-        Max Value: 0.275475264
-        Min Value: -0.903883934
+        Max Value: 1.72616434
+        Min Value: -1.14201748
         Value: true
       Axis: Z
       Channel Name: rgb
@@ -146,7 +149,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 37
+      Max Intensity: 33
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: PointCloud2
@@ -156,7 +159,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00999999978
       Style: Flat Squares
-      Topic: /sensors/lidar/points
+      Topic: /smarttof/pointcloud
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -238,25 +241,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.27988148
+      Distance: 5.22173214
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.49096942
-        Y: -0.12642777
-        Z: -0.47775209
+        X: 0.963956594
+        Y: -0.624211133
+        Z: 1.05453169
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.08479607
+      Pitch: 0.814796329
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.07241035
+      Yaw: 3.07741189
     Saved: ~
 Window Geometry:
   Displays:

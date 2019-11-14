@@ -78,6 +78,8 @@ bool SensorProcessorBase::process(
   std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pointClouds({pointCloudMapFrame, pointCloudSensorFrame});
   removePointsOutsideLimits(pointCloudMapFrame, pointClouds);
   // ROS_INFO("333");
+  // xue: Eq 5 in paper
+  // however, this variance is only z axis, in fact, x and y axis should also have error
   if (!computeVariances(pointCloudSensorFrame, robotPoseCovariance, variances)) return false;
 
   // ROS_INFO("444");

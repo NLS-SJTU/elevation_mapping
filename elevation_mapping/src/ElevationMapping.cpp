@@ -277,11 +277,12 @@ void ElevationMapping::pointCloudCallback(
   pcl::fromPCLPointCloud2(pcl_pc, *pointCloud);
   lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
 
-  ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
+//  ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
 
   // Update map location.
+  // xue: just move map to new center
   updateMapLocation();
-  ROS_INFO("updatemaploca");
+//  ROS_INFO("updatemaploca");
 
   // Update map from motion prediction.
   if (!updatePrediction(lastPointCloudUpdateTime_)) {
@@ -310,7 +311,9 @@ void ElevationMapping::pointCloudCallback(
   // Process point cloud.
   PointCloud<PointXYZRGB>::Ptr pointCloudProcessed(new PointCloud<PointXYZRGB>);
   Eigen::VectorXf measurementVariances;
-  ROS_INFO("process");
+//  ROS_INFO("process");
+  // xue: compute measurement variance with Eq 5 in paper
+  // and transform to map frame
   if (!sensorProcessor_->process(pointCloud, robotPoseCovariance, pointCloudProcessed,
                                  measurementVariances)) {
     ROS_ERROR("Point cloud could not be processed.");
@@ -319,22 +322,23 @@ void ElevationMapping::pointCloudCallback(
   }
   //std::cout<<"a:"<<pointCloudProcessed->size()<<std::endl;
 
-  ROS_INFO("add");
+//  ROS_INFO("add");
   // Add point cloud to elevation map.
+  // xue: add points to map with Eq 6
   if (!map_.add(pointCloudProcessed, measurementVariances, lastPointCloudUpdateTime_, Eigen::Affine3d(sensorProcessor_->transformationSensorToMap_))) {
     ROS_ERROR("Adding point cloud to elevation map failed.");
     resetMapUpdateTimer();
     return;
   }
 
-  ROS_INFO("end");
+//  ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
-  /*
+  
   if (isContinouslyFusing_ && map_.hasFusedMapSubscribers()) {
     map_.fuseAll();
     map_.publishFusedElevationMap();
-  }*/
+  }
 
   resetMapUpdateTimer();
 }
@@ -422,6 +426,7 @@ bool ElevationMapping::updatePrediction(const ros::Time& time)
       const Eigen::Matrix<double, 6, 6, Eigen::RowMajor>>(poseMessage->pose.covariance.data(), 6, 6);
 
   // Compute map variance update from motion prediction.
+  // xue: this part is the Eq 21 in paper.
   robotMotionMapUpdater_.update(map_, robotPose, robotPoseCovariance, time);
 
   return true;

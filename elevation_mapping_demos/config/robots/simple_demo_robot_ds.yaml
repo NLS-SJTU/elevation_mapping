@@ -1,0 +1,11 @@
+point_cloud_topic: "/points"
+map_frame_id: "slam"
+robot_base_frame_id: "camera"
+robot_pose_with_covariance_topic: "/pose"
+robot_pose_cache_size: 100
+track_point_frame_id: "camera"
+# track point is the center of map in robot base frame
+track_point_x: 0.0
+track_point_y: 0.0
+track_point_z: 0.0
+fused_map_publishing_rate: 5

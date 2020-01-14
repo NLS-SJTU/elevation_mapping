@@ -44,6 +44,7 @@ bool SensorProcessorBase::readParameters()
   nodeHandle_.param("sensor_frame_id", sensorFrameId_, std::string("/sensor")); // TODO Fail if parameters are not found.
   nodeHandle_.param("robot_base_frame_id", robotBaseFrameId_, std::string("/robot"));
   nodeHandle_.param("map_frame_id", mapFrameId_, std::string("/map"));
+//  std::cout<<"frames map robot sensor: "<<mapFrameId_<<" "<<robotBaseFrameId_<<" "<<sensorFrameId_<<std::endl;
 
   double minUpdateRate;
   nodeHandle_.param("min_update_rate", minUpdateRate, 2.0);
@@ -89,8 +90,8 @@ bool SensorProcessorBase::process(
 bool SensorProcessorBase::updateTransformations(const ros::Time& timeStamp)
 {
   try {
+//    std::cout<<"frames map robot sensor: "<<mapFrameId_<<" "<<robotBaseFrameId_<<" "<<sensorFrameId_<<std::endl;
     transformListener_.waitForTransform(sensorFrameId_, mapFrameId_, timeStamp, ros::Duration(1.0));
-
     tf::StampedTransform transformTf;
     transformListener_.lookupTransform(mapFrameId_, sensorFrameId_, timeStamp, transformTf);
     poseTFToEigen(transformTf, transformationSensorToMap_);
@@ -193,6 +194,20 @@ bool SensorProcessorBase::filterPointCloud(const pcl::PointCloud<pcl::PointXYZRG
 
 bool SensorProcessorBase::filterPointCloudSensorType(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud) {
     return true;
+}
+
+bool SensorProcessorBase::preprocess(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudInput,
+                const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudMapFrame)
+{
+    return false;
+}
+
+void SensorProcessorBase::precompute(const Eigen::Matrix<double, 6, 6>& robotPoseCovariance)
+{}
+
+double SensorProcessorBase::computeVarOfOnePoint(pcl::PointXYZRGB point)
+{
+    return 0;
 }
 
 } /* namespace elevation_mapping */

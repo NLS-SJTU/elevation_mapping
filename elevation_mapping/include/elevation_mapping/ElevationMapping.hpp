@@ -10,6 +10,7 @@
 
 // Elevation Mapping
 #include "elevation_mapping/ElevationMap.hpp"
+#include "elevation_mapping/DSElevationMap.hpp"
 #include "elevation_mapping/RobotMotionMapUpdater.hpp"
 #include "elevation_mapping/sensor_processors/SensorProcessorBase.hpp"
 #include "elevation_mapping/WeightedEmpiricalCumulativeDistributionFunction.hpp"
@@ -141,6 +142,13 @@ class ElevationMapping
    * @return true if successful.
    */
   bool saveMap(grid_map_msgs::ProcessFile::Request& request, grid_map_msgs::ProcessFile::Response& response);
+
+  /// for dynamic-static elevation map
+  /*!
+   * callback for dynamic and static  elevation map generation
+   * @param pointCloud the point cloud to be fused
+   */
+  void ds_pointCloudCallback(const sensor_msgs::PointCloud2& rawPointCloud);
 
  private:
 
@@ -285,6 +293,18 @@ class ElevationMapping
 
   //! Name of the mask layer used in the masked replace service
   std::string maskedReplaceServiceMaskLayerName_;
+
+  /// for dynamic-static elevation map
+  //! 0 for original; 1 for ds;
+  //! DSElevation map.
+  DSElevationMap ds_map_;
+  int original_or_ds;
+
+  bool ds_initialize();
+
+  bool ds_updateMapLocation();
+
+  bool ds_updatePrediction(const ros::Time& time);
 };
 
 } /* namespace */

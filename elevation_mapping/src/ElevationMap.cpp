@@ -157,7 +157,7 @@ bool ElevationMap::add(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloud, 
   rawMap_.setTimestamp(timestamp.toNSec()); // Point cloud stores time in microseconds.
 
   const ros::WallDuration duration = ros::WallTime::now() - methodStartTime;
-//  ROS_INFO("Raw map has been updated with a new point cloud in %f s.", duration.toSec());
+  ROS_INFO("Raw map has been updated with a new point cloud in %f s.", duration.toSec());
   return true;
 }
 

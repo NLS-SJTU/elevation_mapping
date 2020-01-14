@@ -65,6 +65,22 @@ public:
                const Eigen::Matrix<double, 6, 6>& robotPoseCovariance,
                const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudOutput, Eigen::VectorXf& variances);
 
+  /*!
+   * just to filter here
+   */
+  virtual bool preprocess(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudInput,
+                  const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCloudMapFrame);
+
+  /*!
+   * compute necessary variables before computing variance
+   */
+  virtual void precompute(const Eigen::Matrix<double, 6, 6>& robotPoseCovariance);
+
+  /*!
+   * compute variance of one point
+   */
+  virtual double computeVarOfOnePoint(pcl::PointXYZRGB point);
+
   typedef std::unique_ptr<SensorProcessorBase> Ptr;
 
 	friend class ElevationMapping;

@@ -75,12 +75,14 @@ include_directories(
 add_library(${PROJECT_NAME}_library
   src/ElevationMapping.cpp
   src/ElevationMap.cpp
+  src/DSElevationMap.cpp
   src/RobotMotionMapUpdater.cpp
   src/sensor_processors/SensorProcessorBase.cpp
   src/sensor_processors/StructuredLightSensorProcessor.cpp
   src/sensor_processors/StereoSensorProcessor.cpp
   src/sensor_processors/LaserSensorProcessor.cpp
   src/sensor_processors/PerfectSensorProcessor.cpp
+  src/sensor_processors/LaserSensorProcessorSimple.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_library

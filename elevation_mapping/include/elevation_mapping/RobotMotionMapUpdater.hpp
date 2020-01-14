@@ -10,6 +10,7 @@
 
 // Elevation Mapping
 #include "elevation_mapping/ElevationMap.hpp"
+#include "elevation_mapping/DSElevationMap.hpp"
 
 // Eigen
 #include <Eigen/Core>
@@ -61,6 +62,10 @@ class RobotMotionMapUpdater
    * @return true if successful.
    */
   bool update(ElevationMap& map, const Pose& robotPose,
+              const PoseCovariance& robotPoseCovariance, const ros::Time& time);
+
+  /// for dynamic-static elevation map
+  bool ds_update(DSElevationMap& map, const Pose& robotPose,
               const PoseCovariance& robotPoseCovariance, const ros::Time& time);
 
  private:

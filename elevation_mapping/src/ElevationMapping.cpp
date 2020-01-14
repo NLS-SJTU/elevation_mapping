@@ -52,16 +52,16 @@ namespace elevation_mapping {
 ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle),
       map_(nodeHandle),
+      ds_map_(nodeHandle),
       robotMotionMapUpdater_(nodeHandle),
       isContinouslyFusing_(false),
       ignoreRobotMotionUpdates_(false),
+      original_or_ds(0),
       receivedFirstMatchingPointcloudAndPose_(false)
 {
   ROS_INFO("Elevation mapping node started.");
 
-  readParameters();
-  pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::pointCloudCallback, this);
-  if (!robotPoseTopic_.empty()) {
+  readParameters();  if (!robotPoseTopic_.empty()) {
     robotPoseSubscriber_.subscribe(nodeHandle_, robotPoseTopic_, 1);
     robotPoseCache_.connectInput(robotPoseSubscriber_);
     robotPoseCache_.setCacheSize(robotPoseCacheSize_);
@@ -69,6 +69,8 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
     ignoreRobotMotionUpdates_ = true;
   }
 
+  if(original_or_ds == 0){
+  pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::pointCloudCallback, this);
   mapUpdateTimer_ = nodeHandle_.createTimer(maxNoUpdateDuration_, &ElevationMapping::mapUpdateTimerCallback, this, true, false);
 
   // Multi-threading for fusion.
@@ -109,6 +111,12 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
   saveMapService_ = nodeHandle_.advertiseService("save_map", &ElevationMapping::saveMap, this);
 
   initialize();
+  }
+  else if(original_or_ds == 1){
+      pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::ds_pointCloudCallback, this);
+
+      ds_initialize();
+  }
 }
 
 ElevationMapping::~ElevationMapping()
@@ -121,6 +129,7 @@ ElevationMapping::~ElevationMapping()
 
 bool ElevationMapping::readParameters()
 {
+    nodeHandle_.param("original_or_ds", original_or_ds, 0);
   // ElevationMapping parameters.
   nodeHandle_.param("point_cloud_topic", pointCloudTopic_, string("/points"));
   nodeHandle_.param("robot_pose_with_covariance_topic", robotPoseTopic_, string("/pose"));
@@ -174,6 +183,7 @@ bool ElevationMapping::readParameters()
   string frameId;
   nodeHandle_.param("map_frame_id", frameId, string("/map"));
   map_.setFrameId(frameId);
+  ds_map_.setFrameId(frameId);
 
   grid_map::Length length;
   grid_map::Position position;
@@ -184,7 +194,9 @@ bool ElevationMapping::readParameters()
   nodeHandle_.param("position_y", position.y(), 0.0);
   nodeHandle_.param("resolution", resolution, 0.01);
   map_.setGeometry(length, resolution, position);
+  ds_map_.setGeometry(length, resolution, position);
 
+  // why private variable can be set like this
   nodeHandle_.param("min_variance", map_.minVariance_, pow(0.003, 2));
   nodeHandle_.param("max_variance", map_.maxVariance_, pow(0.03, 2));
   nodeHandle_.param("mahalanobis_distance_threshold", map_.mahalanobisDistanceThreshold_, 2.5);
@@ -229,6 +241,12 @@ bool ElevationMapping::initialize()
   return true;
 }
 
+bool ElevationMapping::ds_initialize()
+{
+    ROS_INFO("Elevation mapping node initializing ... ");
+    ROS_INFO("Done.");
+    return true;}
+
 void ElevationMapping::runFusionServiceThread()
 {
   static const double timeout = 0.05;
@@ -245,6 +263,92 @@ void ElevationMapping::visibilityCleanupThread()
   while (nodeHandle_.ok()) {
     visibilityCleanupQueue_.callAvailable(ros::WallDuration(timeout));
   }
+}
+
+void ElevationMapping::ds_pointCloudCallback(
+    const sensor_msgs::PointCloud2 &rawPointCloud)
+{
+    // Check if point cloud has corresponding robot pose at the beginning
+    if(!receivedFirstMatchingPointcloudAndPose_) {
+      const double oldestPoseTime = robotPoseCache_.getOldestTime().toSec();
+      const double currentPointCloudTime = rawPointCloud.header.stamp.toSec();
+
+      if(currentPointCloudTime < oldestPoseTime) {
+        ROS_WARN_THROTTLE(5, "No corresponding point cloud and pose are found. Waiting for first match.");
+        return;
+      } else {
+        ROS_INFO("First corresponding point cloud and pose found, initialized. ");
+        receivedFirstMatchingPointcloudAndPose_ = true;
+      }
+    }
+
+    // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud.
+    pcl::PCLPointCloud2 pcl_pc;
+    pcl_conversions::toPCL(rawPointCloud, pcl_pc);
+
+    PointCloud<PointXYZRGB>::Ptr pointCloud(new PointCloud<PointXYZRGB>);
+    pcl::fromPCLPointCloud2(pcl_pc, *pointCloud);
+    lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
+    ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
+
+    // Update map location.
+    ROS_INFO("move map");
+    ds_updateMapLocation();
+
+    // Update map from motion prediction.
+    /*
+    ROS_INFO("update map data");
+    if (!ds_updatePrediction(lastPointCloudUpdateTime_)) {
+      ROS_ERROR("Updating process noise failed.");
+      resetMapUpdateTimer();
+      return;
+    }
+    */
+
+    // Get robot pose covariance matrix at timestamp of point cloud.
+    Eigen::Matrix<double, 6, 6> robotPoseCovariance;
+    robotPoseCovariance.setZero();
+    if (!ignoreRobotMotionUpdates_) {
+      boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(lastPointCloudUpdateTime_);
+      if (!poseMessage) {
+        // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
+        if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {
+          ROS_ERROR("The oldest pose available is at %f, requested pose at %f", robotPoseCache_.getOldestTime().toSec(), lastPointCloudUpdateTime_.toSec());
+        } else {
+          ROS_ERROR("Could not get pose information from robot for time %f. Buffer empty?", lastPointCloudUpdateTime_.toSec());
+        }
+        return;
+      }
+      robotPoseCovariance = Eigen::Map<const Eigen::MatrixXd>(poseMessage->pose.covariance.data(), 6, 6);
+    }
+
+/*
+    // Process point cloud.
+    ROS_INFO("process");
+    PointCloud<PointXYZRGB>::Ptr pointCloudProcessed(new PointCloud<PointXYZRGB>);
+    Eigen::VectorXf measurementVariances;
+    if (!sensorProcessor_->process(pointCloud, robotPoseCovariance, pointCloudProcessed,
+                                   measurementVariances)) {
+      ROS_ERROR("Point cloud could not be processed.");
+      resetMapUpdateTimer();
+      return;
+    }
+    std::cout<<"pointCloudProcessed:"<<pointCloudProcessed->size()<<std::endl;
+
+    // Add point cloud to elevation map.
+    if (!ds_map_.ds_add(pointCloudProcessed, measurementVariances, lastPointCloudUpdateTime_, Eigen::Affine3d(sensorProcessor_->transformationSensorToMap_))) {
+      ROS_ERROR("Adding point cloud to elevation map failed.");
+      resetMapUpdateTimer();
+      return;
+    }
+    */
+    if (!ds_map_.ds_newadd(pointCloud, robotPoseCovariance, lastPointCloudUpdateTime_, Eigen::Affine3d(sensorProcessor_->transformationSensorToMap_))) {
+      ROS_ERROR("Adding point cloud to elevation map failed.");
+      resetMapUpdateTimer();
+      return;
+    }
+    ROS_INFO("end");
+    ds_map_.publishAllElevationMap();
 }
 
 void ElevationMapping::pointCloudCallback(
@@ -277,7 +381,7 @@ void ElevationMapping::pointCloudCallback(
   pcl::fromPCLPointCloud2(pcl_pc, *pointCloud);
   lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
 
-//  ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
+  ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
 
   // Update map location.
   // xue: just move map to new center
@@ -285,6 +389,7 @@ void ElevationMapping::pointCloudCallback(
 //  ROS_INFO("updatemaploca");
 
   // Update map from motion prediction.
+  // xue: loop all map grids
   if (!updatePrediction(lastPointCloudUpdateTime_)) {
     ROS_ERROR("Updating process noise failed.");
     resetMapUpdateTimer();
@@ -314,24 +419,26 @@ void ElevationMapping::pointCloudCallback(
 //  ROS_INFO("process");
   // xue: compute measurement variance with Eq 5 in paper
   // and transform to map frame
+  // xue: loop all points
   if (!sensorProcessor_->process(pointCloud, robotPoseCovariance, pointCloudProcessed,
                                  measurementVariances)) {
     ROS_ERROR("Point cloud could not be processed.");
     resetMapUpdateTimer();
     return;
   }
-  //std::cout<<"a:"<<pointCloudProcessed->size()<<std::endl;
+  std::cout<<"pointCloudProcessed:"<<pointCloudProcessed->size()<<std::endl;
 
 //  ROS_INFO("add");
   // Add point cloud to elevation map.
   // xue: add points to map with Eq 6
+  // xue: loop points inside map
   if (!map_.add(pointCloudProcessed, measurementVariances, lastPointCloudUpdateTime_, Eigen::Affine3d(sensorProcessor_->transformationSensorToMap_))) {
     ROS_ERROR("Adding point cloud to elevation map failed.");
     resetMapUpdateTimer();
     return;
   }
 
-//  ROS_INFO("end");
+  ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
   
@@ -390,6 +497,44 @@ bool ElevationMapping::fuseEntireMap(std_srvs::Empty::Request&, std_srvs::Empty:
   boost::recursive_mutex::scoped_lock scopedLock(map_.getFusedDataMutex());
   map_.fuseAll();
   map_.publishFusedElevationMap();
+  return true;
+}
+
+bool ElevationMapping::ds_updatePrediction(const ros::Time& time)
+{
+  if (ignoreRobotMotionUpdates_) return true;
+
+  ROS_DEBUG("Updating map with latest prediction from time %f.", robotPoseCache_.getLatestTime().toSec());
+
+  if (time + timeTolerance_ < map_.getTimeOfLastUpdate()) {
+    ROS_ERROR("Requested update with time stamp %f, but time of last update was %f.", time.toSec(), map_.getTimeOfLastUpdate().toSec());
+    return false;
+  } else if (time < map_.getTimeOfLastUpdate()) {
+    ROS_DEBUG("Requested update with time stamp %f, but time of last update was %f. Ignoring update.", time.toSec(), map_.getTimeOfLastUpdate().toSec());
+    return true;
+  }
+
+  // Get robot pose at requested time.
+  boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(time);
+  if (!poseMessage) {
+    // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
+    if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {
+      ROS_ERROR("The oldest pose available is at %f, requested pose at %f", robotPoseCache_.getOldestTime().toSec(), lastPointCloudUpdateTime_.toSec());
+    } else {
+      ROS_ERROR("Could not get pose information from robot for time %f. Buffer empty?", lastPointCloudUpdateTime_.toSec());
+    }
+    return false;
+  }
+
+  HomTransformQuatD robotPose;
+  convertFromRosGeometryMsg(poseMessage->pose.pose, robotPose);
+  // Covariance is stored in row-major in ROS: http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
+  Eigen::Matrix<double, 6, 6> robotPoseCovariance = Eigen::Map<
+      const Eigen::Matrix<double, 6, 6, Eigen::RowMajor>>(poseMessage->pose.covariance.data(), 6, 6);
+
+  // Compute map variance update from motion prediction.
+  robotMotionMapUpdater_.ds_update(ds_map_, robotPose, robotPoseCovariance, time);
+
   return true;
 }
 
@@ -453,6 +598,32 @@ bool ElevationMapping::updateMapLocation()
   convertFromRosGeometryMsg(trackPointTransformed.point, position3d);
   grid_map::Position position = position3d.vector().head(2);
   map_.move(position);
+  return true;
+}
+
+bool ElevationMapping::ds_updateMapLocation()
+{
+  ROS_DEBUG("Elevation map is checked for relocalization.");
+
+  geometry_msgs::PointStamped trackPoint;
+  trackPoint.header.frame_id = trackPointFrameId_;
+  trackPoint.header.stamp = ros::Time(0);
+  convertToRosGeometryMsg(trackPoint_, trackPoint.point);
+  geometry_msgs::PointStamped trackPointTransformed;
+
+  try {
+//      std::cout<<"update map: "<<ds_map_.getFrameId()<<std::endl;
+    transformListener_.transformPoint(ds_map_.getFrameId(), trackPoint, trackPointTransformed);
+  } catch (TransformException &ex) {
+    ROS_ERROR("%s", ex.what());
+    return false;
+  }
+
+  Position3D position3d;
+  convertFromRosGeometryMsg(trackPointTransformed.point, position3d);
+  grid_map::Position position = position3d.vector().head(2);
+  //ROS_INFO("TEST1");
+  ds_map_.move(position);
   return true;
 }
 

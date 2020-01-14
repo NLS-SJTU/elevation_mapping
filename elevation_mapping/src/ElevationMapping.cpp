@@ -25,6 +25,8 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/filter.h>
+#include <pcl/filters/passthrough.h>
 
 // Kindr
 #include <kindr/Core>
@@ -379,6 +381,21 @@ void ElevationMapping::pointCloudCallback(
 
   PointCloud<PointXYZRGB>::Ptr pointCloud(new PointCloud<PointXYZRGB>);
   pcl::fromPCLPointCloud2(pcl_pc, *pointCloud);
+  //filter points
+	pcl::PassThrough<pcl::PointXYZRGB> pass_x, pass_z, pass_y;
+	pass_x.setFilterFieldName("x");
+	pass_x.setFilterLimits(-10, 10);
+	pass_z.setFilterFieldName("z");
+	pass_z.setFilterLimits(-5, 1.5);
+	pass_y.setFilterFieldName("y");
+	pass_y.setFilterLimits(-10, 10);
+	pass_y.setInputCloud(pointCloud->makeShared());
+	pass_y.filter(*pointCloud);
+	pass_x.setInputCloud(pointCloud->makeShared());
+	pass_x.filter(*pointCloud);
+	pass_z.setInputCloud(pointCloud->makeShared());
+	pass_z.filter(*pointCloud);
+
   lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
 
   ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
@@ -441,7 +458,7 @@ void ElevationMapping::pointCloudCallback(
   ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
-  
+
   if (isContinouslyFusing_ && map_.hasFusedMapSubscribers()) {
     map_.fuseAll();
     map_.publishFusedElevationMap();

@@ -102,10 +102,10 @@ bool DSElevationMap::ds_newadd(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr poin
     sensorProcessor_->precompute(robotPoseCovariance);
     end = clock();
     double search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
-    cout<<"pre compute time: "<<search_time<<"s."<<endl;
+    // cout<<"pre compute time: "<<search_time<<"s."<<endl;
 
     // Here start the original add part
-    ROS_INFO("start add points");
+    // ROS_INFO("start add points");
 
     // Update initial time if it is not initialized.
     if (initialTime_.toSec() == 0) {
@@ -214,11 +214,11 @@ bool DSElevationMap::ds_newadd(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr poin
     }
     step_et = clock();
     double time_loop = ((double)(step_et - step_st) / CLOCKS_PER_SEC);
-    cout<<"loop time: "<<time_loop<<"s."<<endl;
+    // cout<<"loop time: "<<time_loop<<"s."<<endl;
 
     // check whether the observation is ok to add
-    cout<<"error grids: "<<todors.sum()<<", total observe grids: "
-       <<numof_total_grid_to_update<<", points: "<<pointCloudProcessed->size()<<endl;
+    // cout<<"error grids: "<<todors.sum()<<", total observe grids: "
+       // <<numof_total_grid_to_update<<", points: "<<pointCloudProcessed->size()<<endl;
     if(true){//1.0*numof_error_grids/numof_total_grid_to_update < max_rate_error_grids){
         // add data from preMap to dynamic or static map, from dynamic to static map
         fusePreToStaDyn();
@@ -232,7 +232,7 @@ bool DSElevationMap::ds_newadd(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr poin
     end = clock();
     search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
     const ros::WallDuration duration = ros::WallTime::now() - methodStartTime;
-    ROS_INFO("Raw map has been updated with a new point cloud in %f s(ros)|| %f s(sys).", duration.toSec(), search_time);
+    // ROS_INFO("Raw map has been updated with a new point cloud in %f s(ros)|| %f s(sys).", duration.toSec(), search_time);
     return true;
 }
 
@@ -244,7 +244,7 @@ bool DSElevationMap::ds_add(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCl
                 (int) pointCloud->size(), (int) pointCloudVariances.size());
       return false;
     }
-    ROS_INFO("start add points");
+    // ROS_INFO("start add points");
     int64_t begin = clock(), end;
     // Initialization for time calculation.
     const ros::WallTime methodStartTime(ros::WallTime::now());
@@ -358,8 +358,8 @@ bool DSElevationMap::ds_add(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCl
     }
 
     // check whether the observation is ok to add
-    cout<<"error grids: "<<todors.sum()<<", total observe grids: "
-       <<numof_total_grid_to_update<<", points: "<<pointCloud->size()<<endl;
+    // cout<<"error grids: "<<todors.sum()<<", total observe grids: "
+       // <<numof_total_grid_to_update<<", points: "<<pointCloud->size()<<endl;
     if(true){//1.0*numof_error_grids/numof_total_grid_to_update < max_rate_error_grids){
         // add data from preMap to dynamic or static map, from dynamic to static map
         fusePreToStaDyn();
@@ -373,7 +373,7 @@ bool DSElevationMap::ds_add(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointCl
     end = clock();
     double search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
     const ros::WallDuration duration = ros::WallTime::now() - methodStartTime;
-    ROS_INFO("Raw map has been updated with a new point cloud in %f s(ros)|| %f s(sys).", duration.toSec(), search_time);
+    // ROS_INFO("Raw map has been updated with a new point cloud in %f s(ros)|| %f s(sys).", duration.toSec(), search_time);
     return true;
 }
 
@@ -547,7 +547,7 @@ bool DSElevationMap::update(const grid_map::Matrix& varianceUpdate, const grid_m
 
 bool DSElevationMap::fusePreToStaDyn()
 {
-    ROS_INFO("fuse to static dynamic map");
+    // ROS_INFO("fuse to static dynamic map");
     int64_t begin = clock(), end;
     finalMap_.clearBasic();
     int s_update_null = 0, s_update = 0, d_update = 0, dts_update = 0;
@@ -672,7 +672,7 @@ bool DSElevationMap::fusePreToStaDyn()
     }
     end = clock();
     double search_time = ((double)(end - begin) / CLOCKS_PER_SEC);
-    cout<<"fuse to dynamic static map time: "<<search_time<<"s."<<endl;
+    // cout<<"fuse to dynamic static map time: "<<search_time<<"s."<<endl;
 //    cout<<"update to static total: "<<s_update<<", to static null: "
 //       <<s_update_null<<", to dynamic: "<<d_update<<", dyn to sta: "
 //      <<dts_update<<endl;
@@ -914,6 +914,9 @@ bool DSElevationMap::publishDynamicElevationMap()
     rawMapCopy.erase("sensor_x_at_lowest_scan");
     rawMapCopy.erase("sensor_y_at_lowest_scan");
     rawMapCopy.erase("sensor_z_at_lowest_scan");
+    rawMapCopy.erase("horizontal_variance_x");
+    rawMapCopy.erase("horizontal_variance_y");
+    rawMapCopy.erase("horizontal_variance_xy");
     grid_map_msgs::GridMap message;
     GridMapRosConverter::toMessage(rawMapCopy, message);
     elevationMapDynamicPublisher_.publish(message);
@@ -927,6 +930,9 @@ bool DSElevationMap::publishStaticElevationMap()
     rawMapCopy.erase("sensor_x_at_lowest_scan");
     rawMapCopy.erase("sensor_y_at_lowest_scan");
     rawMapCopy.erase("sensor_z_at_lowest_scan");
+    rawMapCopy.erase("horizontal_variance_x");
+    rawMapCopy.erase("horizontal_variance_y");
+    rawMapCopy.erase("horizontal_variance_xy");
     grid_map_msgs::GridMap message;
     GridMapRosConverter::toMessage(rawMapCopy, message);
     elevationMapStaticPublisher_.publish(message);
@@ -936,6 +942,10 @@ bool DSElevationMap::publishStaticElevationMap()
 bool DSElevationMap::publishPresentElevationMap()
 {
     grid_map::GridMap rawMapCopy = preMap_;
+    rawMapCopy.erase("color");
+    rawMapCopy.erase("time");
+    rawMapCopy.erase("to_dyn_or_sta");
+    rawMapCopy.erase("error_static");
     rawMapCopy.erase("lowest_scan_point");
     rawMapCopy.erase("sensor_x_at_lowest_scan");
     rawMapCopy.erase("sensor_y_at_lowest_scan");

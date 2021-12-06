@@ -1,0 +1,19 @@
+<!---->
+<launch>
+  <!-- Elevation mapping node -->
+  <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find elevation_mapping_demos)/config/robots/simple_demo_robotzed.yaml" />
+    <rosparam command="load" file="$(find elevation_mapping_demos)/config/elevation_maps/long_range_dszed.yaml" />
+    <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/tof.yaml" />
+    <param name="original_or_ds" value="1"/>
+    <remap from="points" to="/smarttof/pointcloud"/>
+    <remap from="pose" to="/sensors/stereo_cam/pose_with_covariance"/>
+  </node>
+<!--sensors/lidar/points   slam/posecov -->
+  <!-- Launch visualizations for the resulting elevation map -->
+  <include file="$(find elevation_mapping_demos)/launch/visualization.launch" />
+
+  <!-- Launch RViz with the demo configuration -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find elevation_mapping_demos)/rviz/orbelevation_map_visualization.rviz" />
+
+</launch>

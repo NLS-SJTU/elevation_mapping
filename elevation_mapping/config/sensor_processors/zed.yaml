@@ -1,0 +1,10 @@
+# Velodyne_HDL-32E
+# TODO
+
+sensor_processor/type: laser
+sensor_processor/min_radius: 0.018
+sensor_processor/beam_angle: 0.0006
+sensor_processor/beam_constant: 0.0015
+sensor_frame_id: "/zed_left_camera_frame"
+sensor_processor/apply_voxelgrid_filter: true
+sensor_processor/voxelgrid_filter_size: 0.2

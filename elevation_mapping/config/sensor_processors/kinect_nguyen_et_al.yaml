@@ -10,4 +10,4 @@ sensor_processor/normal_factor_c: 0.4
 sensor_processor/normal_factor_d: 0
 sensor_processor/normal_factor_e: 1
 sensor_processor/lateral_factor: 0.001376915 # for theta = 45°: 0.835 * 0.00780 [mm/px] / 4.73 [mm]
-
+sensor_frame_id: "/kinect2_rgb_optical_frame"

@@ -72,6 +72,7 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
   }
 
   if(original_or_ds == 0){
+    ROS_INFO("[ELEMAP]start original.");
   pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::pointCloudCallback, this);
   mapUpdateTimer_ = nodeHandle_.createTimer(maxNoUpdateDuration_, &ElevationMapping::mapUpdateTimerCallback, this, true, false);
 
@@ -115,6 +116,7 @@ ElevationMapping::ElevationMapping(ros::NodeHandle& nodeHandle)
   initialize();
   }
   else if(original_or_ds == 1){
+    ROS_INFO("[ELEMAP]start dynamic static.");
       pointCloudSubscriber_ = nodeHandle_.subscribe(pointCloudTopic_, 5, &ElevationMapping::ds_pointCloudCallback, this);
 
       ds_initialize();
@@ -291,10 +293,10 @@ void ElevationMapping::ds_pointCloudCallback(
     PointCloud<PointXYZRGB>::Ptr pointCloud(new PointCloud<PointXYZRGB>);
     pcl::fromPCLPointCloud2(pcl_pc, *pointCloud);
     lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
-    ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
+    // ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
 
     // Update map location.
-    ROS_INFO("move map");
+    // ROS_INFO("move map");
     ds_updateMapLocation();
 
     // Update map from motion prediction.
@@ -349,7 +351,7 @@ void ElevationMapping::ds_pointCloudCallback(
       resetMapUpdateTimer();
       return;
     }
-    ROS_INFO("end");
+    // ROS_INFO("end");
     ds_map_.publishAllElevationMap();
 }
 
@@ -398,7 +400,7 @@ void ElevationMapping::pointCloudCallback(
 
   lastPointCloudUpdateTime_.fromNSec(1000 * pointCloud->header.stamp);
 
-  ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
+  // ROS_INFO("ElevationMap received a point cloud (%i points) for elevation mapping.", static_cast<int>(pointCloud->size()));
 
   // Update map location.
   // xue: just move map to new center
@@ -443,7 +445,7 @@ void ElevationMapping::pointCloudCallback(
     resetMapUpdateTimer();
     return;
   }
-  std::cout<<"pointCloudProcessed:"<<pointCloudProcessed->size()<<std::endl;
+  // std::cout<<"pointCloudProcessed:"<<pointCloudProcessed->size()<<std::endl;
 
 //  ROS_INFO("add");
   // Add point cloud to elevation map.
@@ -455,7 +457,7 @@ void ElevationMapping::pointCloudCallback(
     return;
   }
 
-  ROS_INFO("end");
+  // ROS_INFO("end");
   // Publish elevation map.
   map_.publishRawElevationMap();
 

@@ -122,7 +122,7 @@ void LaserSensorProcessorSimple::precompute(const Eigen::Matrix<double, 6, 6>& r
 
     // Sensor Jacobian (J_s).
     sensorJacobian = projectionVector * (rotationMapToBase_.transposed() * rotationBaseToSensor_.transposed()).toImplementation().cast<float>();
-    std::cout<<"sensor jaco: "<<sensorJacobian<<std::endl;
+    // std::cout<<"sensor jaco: "<<sensorJacobian<<std::endl;
 
     // Robot rotation covariance matrix (Sigma_q).
     rotationVariance = robotPoseCovariance.bottomRightCorner(3, 3).cast<float>();

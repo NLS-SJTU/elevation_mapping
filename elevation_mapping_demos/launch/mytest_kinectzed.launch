@@ -7,7 +7,7 @@
     <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/kinect_nguyen_et_al.yaml" />
     <param name="original_or_ds" value="1"/>
     <remap from="points" to="/kinect2/qhd/points"/>
-    <remap from="pose" to="/sensors/stereo_cam/pose_with_covariance"/>
+    <remap from="pose" to="/sensors/stereo_cam/odom"/>
   </node>
 <!--sensors/lidar/points   slam/posecov -->
   <!-- Launch visualizations for the resulting elevation map -->

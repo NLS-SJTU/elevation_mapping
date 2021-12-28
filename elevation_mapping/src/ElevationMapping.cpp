@@ -313,7 +313,7 @@ void ElevationMapping::ds_pointCloudCallback(
     Eigen::Matrix<double, 6, 6> robotPoseCovariance;
     robotPoseCovariance.setZero();
     if (!ignoreRobotMotionUpdates_) {
-      boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(lastPointCloudUpdateTime_);
+      boost::shared_ptr<nav_msgs::Odometry const> poseMessage = robotPoseCache_.getElemBeforeTime(lastPointCloudUpdateTime_);
       if (!poseMessage) {
         // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
         if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {
@@ -419,7 +419,7 @@ void ElevationMapping::pointCloudCallback(
   Eigen::Matrix<double, 6, 6> robotPoseCovariance;
   robotPoseCovariance.setZero();
   if (!ignoreRobotMotionUpdates_) {
-    boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(lastPointCloudUpdateTime_);
+    boost::shared_ptr<nav_msgs::Odometry const> poseMessage = robotPoseCache_.getElemBeforeTime(lastPointCloudUpdateTime_);
     if (!poseMessage) {
       // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
       if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {
@@ -534,7 +534,7 @@ bool ElevationMapping::ds_updatePrediction(const ros::Time& time)
   }
 
   // Get robot pose at requested time.
-  boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(time);
+  boost::shared_ptr<nav_msgs::Odometry const> poseMessage = robotPoseCache_.getElemBeforeTime(time);
   if (!poseMessage) {
     // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
     if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {
@@ -572,7 +572,7 @@ bool ElevationMapping::updatePrediction(const ros::Time& time)
   }
 
   // Get robot pose at requested time.
-  boost::shared_ptr<geometry_msgs::PoseWithCovarianceStamped const> poseMessage = robotPoseCache_.getElemBeforeTime(time);
+  boost::shared_ptr<nav_msgs::Odometry const> poseMessage = robotPoseCache_.getElemBeforeTime(time);
   if (!poseMessage) {
     // Tell the user that either for the timestamp no pose is available or that the buffer is possibly empty
     if(robotPoseCache_.getOldestTime().toSec() > lastPointCloudUpdateTime_.toSec()) {

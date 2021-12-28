@@ -47,7 +47,7 @@ DSElevationMap::DSElevationMap(ros::NodeHandle nodeHandle)
 
   elevationMapStaticPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("elevation_map_static", 1);
   elevationMapDynamicPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("elevation_map_dynamic", 1);
-  elevationMapFinalPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("elevation_map_final", 1);
+  elevationMapFinalPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("elevation_map", 1);
   elevationMapPresentPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("elevation_map_present", 1);
 //  if (!underlyingMapTopic_.empty()) underlyingMapSubscriber_ =
 //      nodeHandle_.subscribe(underlyingMapTopic_, 1, &ElevationMap::underlyingMapCallback, this);
@@ -70,7 +70,7 @@ void DSElevationMap::readParam()
     nodeHandle_.param("obj_speed_factor", obj_speed_factor, 0.5);
 
     sensorProcessor_.reset(new LaserSensorProcessorSimple(nodeHandle_, transformListener_));
-    //sensorProcessor_.readParameters();
+    // sensorProcessor_->readParameters();
     ROS_INFO("dsmap read param");
 }
 

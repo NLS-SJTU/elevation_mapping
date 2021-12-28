@@ -5,11 +5,11 @@
     <rosparam command="load" file="$(find elevation_mapping_demos)/config/robots/simple_demo_robotzed.yaml" />
     <rosparam command="load" file="$(find elevation_mapping_demos)/config/elevation_maps/long_range_dszed.yaml" />
     <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/zed.yaml" />
-    <param name="original_or_ds" value="0"/>
+    <param name="original_or_ds" value="1"/>
     <remap from="points" to="/sensors/stereo_cam/point_cloud/cloud_registered"/>
-    <remap from="pose" to="/sensors/stereo_cam/pose_with_covariance"/>
+    <remap from="pose" to="/RosAria/pose"/>
   </node>
-<!--sensors/lidar/points   slam/posecov -->
+<!--sensors/lidar/points   slam/posecov  /sensors/stereo_cam/odom -->
   <!-- Launch visualizations for the resulting elevation map -->
   <include file="$(find elevation_mapping_demos)/launch/visualization.launch" />
 

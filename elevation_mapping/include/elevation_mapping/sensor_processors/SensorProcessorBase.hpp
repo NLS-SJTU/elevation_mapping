@@ -190,6 +190,8 @@ public:
 
   //! Use VoxelGrid filter to cleanup pointcloud if true.
   bool applyVoxelGridFilter_;
+  
+  bool ignore_z;
 };
 
 } /* namespace elevation_mapping */

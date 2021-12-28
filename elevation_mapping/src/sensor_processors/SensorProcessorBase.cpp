@@ -44,7 +44,7 @@ bool SensorProcessorBase::readParameters()
   nodeHandle_.param("sensor_frame_id", sensorFrameId_, std::string("/sensor")); // TODO Fail if parameters are not found.
   nodeHandle_.param("robot_base_frame_id", robotBaseFrameId_, std::string("/robot"));
   nodeHandle_.param("map_frame_id", mapFrameId_, std::string("/map"));
-//  std::cout<<"frames map robot sensor: "<<mapFrameId_<<" "<<robotBaseFrameId_<<" "<<sensorFrameId_<<std::endl;
+  std::cout<<"frames map robot sensor: "<<mapFrameId_<<" "<<robotBaseFrameId_<<" "<<sensorFrameId_<<std::endl;
 
   double minUpdateRate;
   nodeHandle_.param("min_update_rate", minUpdateRate, 2.0);
@@ -56,6 +56,7 @@ bool SensorProcessorBase::readParameters()
 
   nodeHandle_.param("sensor_processor/apply_voxelgrid_filter", applyVoxelGridFilter_, false);
   nodeHandle_.param("sensor_processor/voxelgrid_filter_size", sensorParameters_["voxelgrid_filter_size"], 0.0);
+  nodeHandle_.param("sensor_processor/ignore_z", ignore_z, false);
   return true;
 }
 
@@ -134,6 +135,9 @@ bool SensorProcessorBase::transformPointCloud(
 
   Eigen::Affine3d transform;
   poseTFToEigen(transformTf, transform);
+  if(ignore_z){
+    transform(2,3) = 0;
+  }
   pcl::transformPointCloud(*pointCloud, *pointCloudTransformed, transform.cast<float>());
   pointCloudTransformed->header.frame_id = targetFrame;
 

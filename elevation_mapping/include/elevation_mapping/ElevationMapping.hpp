@@ -35,6 +35,7 @@
 #include <message_filters/subscriber.h>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <std_srvs/Empty.h>
 
 // Boost
@@ -209,7 +210,7 @@ class ElevationMapping
 
   //! ROS subscribers.
   ros::Subscriber pointCloudSubscriber_;
-  message_filters::Subscriber<geometry_msgs::PoseWithCovarianceStamped> robotPoseSubscriber_;
+  message_filters::Subscriber<nav_msgs::Odometry> robotPoseSubscriber_;
 
   //! ROS service servers.
   ros::ServiceServer fusionTriggerService_;
@@ -226,7 +227,7 @@ class ElevationMapping
   ros::CallbackQueue fusionServiceQueue_;
 
   //! Cache for the robot pose messages.
-  message_filters::Cache<geometry_msgs::PoseWithCovarianceStamped> robotPoseCache_;
+  message_filters::Cache<nav_msgs::Odometry> robotPoseCache_;
 
   //! Size of the cache for the robot pose messages.
   int robotPoseCacheSize_;

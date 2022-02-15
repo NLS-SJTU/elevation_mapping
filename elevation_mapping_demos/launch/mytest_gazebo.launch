@@ -6,7 +6,8 @@
     <rosparam command="load" file="$(find elevation_mapping_demos)/config/robots/simple_demo_robot_gazebo.yaml" />
     <rosparam command="load" file="$(find elevation_mapping_demos)/config/elevation_maps/long_range.yaml" />
     <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/velodyne_HDL-32E_gazebo.yaml" />
-    <remap from="pose" to="odom/pose"/>
+    <param name="original_or_ds" value="1"/>
+    <remap from="pose" to="/sim_p3at/odom"/>
   </node>
 
   <!-- Launch visualizations for the resulting elevation map -->

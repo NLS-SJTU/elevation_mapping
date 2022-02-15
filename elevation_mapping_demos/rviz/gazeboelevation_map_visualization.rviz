@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /PointCloud21
       Splitter Ratio: 0.663888991
     Tree Height: 308
   - Class: rviz/Selection
@@ -26,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Elevation Map Raw
+    SyncSource: PointCloud2
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -162,7 +161,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: AxisColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: true
       Max Color: 255; 0; 0
       Max Intensity: 9.99999975e-05
@@ -179,7 +178,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /elevation_map_raw_visualization/map_region
@@ -241,11 +240,39 @@ Visualization Manager:
       Topic: /dwa_path
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation
+      Color Transformer: IntensityLayer
+      Enabled: true
+      Height Layer: elevation
+      Height Transformer: Layer
+      History Length: 1
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: GridMap
+      Show Grid Lines: true
+      Topic: /elevation_mapping/elevation_map
+      Unreliable: false
+      Use Rainbow: true
+      Value: true
+    - Class: rviz/Axes
+      Enabled: true
+      Length: 0.300000012
+      Name: Axes
+      Radius: 0.100000001
+      Reference Frame: <Fixed Frame>
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: velodyne
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -266,25 +293,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.66243267
+      Distance: 8.43546295
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.64904392
-        Y: 0.142699882
-        Z: -0.767946899
+        X: 1.12364399
+        Y: 0.335344613
+        Z: -0.786304832
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.859797359
+      Pitch: 0.929798365
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.18242216
+      Yaw: 3.14241552
     Saved: ~
 Window Geometry:
   Displays:
@@ -302,5 +329,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1093
-  X: 163
-  Y: 383
+  X: 2152
+  Y: 158
